@@ -6,8 +6,11 @@ use Illuminate\Http\Request;
 
 use App\User; 
 
+use App\Micropost;
+
 class UsersController extends Controller
 {
+    
     public function index()
     {
         // ユーザ一覧をidの降順で取得
@@ -96,5 +99,23 @@ class UsersController extends Controller
         $userIds[] = $this->id;
         // それらのユーザが所有する投稿に絞り込む
         return Micropost::whereIn('user_id', $userIds);
+    }
+    
+    public function favorites($id)
+    {
+        // idの値でユーザを検索して取得
+        $user = User::findOrFail($id);
+
+        // 関係するモデルの件数をロード
+        $user->loadRelationshipCounts();
+
+        // ユーザのフォロー一覧を取得
+        $microposts = $user->favorites()->paginate(10);
+
+        // フォロー一覧ビューでそれらを表示
+        return view('users.favorites', [
+            'user' => $user,
+            'microposts' => $microposts,
+        ]);
     }
 }
